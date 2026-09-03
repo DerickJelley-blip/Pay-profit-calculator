@@ -175,6 +175,20 @@
   .stat{padding-bottom:12px;}
   .stat .stat-label{font-size:11px;font-weight:600;color:var(--slate);margin-bottom:3px;}
   .stat .stat-value{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:600;color:var(--ink);}
+  .stat-value.neg{color:var(--neg);}
+  .stat-sub{font-size:10.5px;color:var(--slate);margin-top:2px;}
+  .solved-tag{font-size:10px;font-weight:600;color:var(--amber);margin-left:6px;vertical-align:middle;}
+
+  .stat-full{padding:10px 0 6px;border-top:1px solid var(--line);margin-top:2px;}
+  .stat-full .stat-label{font-size:11px;font-weight:600;color:var(--slate);margin-bottom:4px;}
+  .stat-full .stat-value{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:var(--teal-dark);}
+
+  .section-divider{border-top:1px dashed var(--line);margin:20px 0 16px;}
+
+  .contract-hero{text-align:center;margin-top:16px;padding:18px 12px 4px;border-top:1px solid var(--line);}
+  .contract-hero .hero-label{font-size:11.5px;font-weight:600;color:var(--slate);margin-bottom:6px;}
+  .contract-hero .hero-value{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;color:var(--amber);}
+  .contract-hero .hero-value.neg{color:var(--neg);}
 
   .hours-strip{display:flex;justify-content:space-between;background:var(--surface);border-radius:10px;padding:10px 14px;margin:6px 0 16px;}
   .hours-strip div{text-align:center;flex:1;}
@@ -256,8 +270,19 @@
             <div class="unit-input"><span class="prefix">$</span><input id="perDiem" type="number" step="1" value="1500"></div>
           </div>
           <div class="field">
+            <label>Other Compensation</label>
+            <div class="unit-input"><span class="prefix">$</span><input id="otherComp" type="number" step="1" value="0"></div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
             <label>Burden</label>
             <div class="unit-input pct"><input id="burden" type="number" step="0.1" value="17"><span class="suffix">%</span></div>
+          </div>
+          <div class="field">
+            <label>Contract Weeks</label>
+            <input id="contractWeeks" type="number" step="1" value="13">
           </div>
         </div>
 
@@ -281,21 +306,46 @@
       </div>
 
       <div class="card">
-        <div class="hero">
-          <div class="hero-label" id="heroLabel">Weekly Profit</div>
-          <div class="hero-value" id="heroValue">$0</div>
-          <div class="hero-sub" id="heroSub">at $0.00/hr regular pay</div>
-        </div>
-        <div class="stat-grid">
-          <div class="stat"><div class="stat-label">Gross Weekly Revenue</div><div class="stat-value" id="outRevenue">$0</div></div>
-          <div class="stat"><div class="stat-label">Total Employee Cost</div><div class="stat-value" id="outCost">$0</div></div>
-          <div class="stat"><div class="stat-label">Profit Margin</div><div class="stat-value" id="outMargin">0.0%</div></div>
-          <div class="stat"><div class="stat-label">Weekly Wages</div><div class="stat-value" id="outWages">$0</div></div>
-        </div>
         <div class="hours-strip">
           <div><div class="h-label">REG HRS</div><div class="h-value" id="outReg">0</div></div>
           <div><div class="h-label">OT HRS</div><div class="h-value" id="outOT">0</div></div>
           <div><div class="h-label">DT HRS</div><div class="h-value" id="outDT">0</div></div>
+        </div>
+
+        <h2>Employee</h2>
+        <div class="stat-grid">
+          <div class="stat">
+            <div class="stat-label">Hourly Rate</div>
+            <div class="stat-value"><span id="outHourly">$0.00</span><span class="solved-tag" id="solvedTag"></span></div>
+          </div>
+          <div class="stat"><div class="stat-label">OT Rate</div><div class="stat-value" id="outOTRate">$0.00</div></div>
+          <div class="stat"><div class="stat-label">Per Diem</div><div class="stat-value" id="outPerDiem">$0</div></div>
+          <div class="stat"><div class="stat-label">Other Comp</div><div class="stat-value" id="outOtherComp">$0</div></div>
+        </div>
+        <div class="stat-full">
+          <div class="stat-label">Weekly Pay (comp + per diem)</div>
+          <div class="stat-value" id="outWeeklyPay">$0</div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>Business</h2>
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-label">Gross Weekly Billing</div><div class="stat-value" id="outBilling">$0</div></div>
+          <div class="stat"><div class="stat-label">Gross Weekly Revenue</div><div class="stat-value" id="outRevenue">$0</div></div>
+          <div class="stat"><div class="stat-label">Burden Cost</div><div class="stat-value" id="outBurden">$0</div></div>
+          <div class="stat"><div class="stat-label">Weekly Compensation</div><div class="stat-value" id="outWages">$0</div></div>
+          <div class="stat"><div class="stat-label">Total Employee Cost</div><div class="stat-value" id="outCost">$0</div></div>
+          <div class="stat">
+            <div class="stat-label">Weekly Profit</div>
+            <div class="stat-value" id="outProfit">$0</div>
+            <div class="stat-sub" id="outMarginSub"></div>
+          </div>
+        </div>
+
+        <div class="contract-hero">
+          <div class="hero-label" id="contractLabel">Total Contract Profit — 13 wks</div>
+          <div class="hero-value" id="outContractProfit">$0</div>
         </div>
       </div>
     </div>
@@ -417,7 +467,6 @@ function onModeCheck(which){
   mode = which;
   document.getElementById('payField').classList.toggle('disabled', mode !== 'pay');
   document.getElementById('targetField').classList.toggle('disabled', mode !== 'target');
-  document.getElementById('heroLabel').textContent = mode==='pay' ? 'Weekly Profit' : 'Max Regular Hourly Pay';
   compute();
 }
 
@@ -431,11 +480,14 @@ function compute(){
   const shifts = num('shifts');
   const hoursShift = num('hoursShift');
   const perDiem = num('perDiem');
+  const otherComp = num('otherComp');
   const burden = num('burden')/100;
+  const contractWeeks = num('contractWeeks') || 13;
 
   const brAfterVms = billRate * (1 - vmsFee);
   const brAfterFact = brAfterVms * (1 - factFee);
   const billedHours = shifts * hoursShift;
+  const grossBilling = billRate * billedHours;
   const revenue = brAfterFact * billedHours;
 
   const mealDed = hoursShift > 5 ? 0.5 : 0;
@@ -476,34 +528,50 @@ function compute(){
   if(mode === 'pay'){
     regPay = num('regPay');
     wages = regPay * weightedHours;
-    totalCost = wages*(1+burden) + perDiem;
+    totalCost = wages*(1+burden) + perDiem + otherComp;
     profit = revenue - totalCost;
   } else {
     const targetProfit = num('targetProfit');
     totalCost = revenue - targetProfit;
-    wages = (totalCost - perDiem) / (1+burden);
+    wages = (totalCost - perDiem - otherComp) / (1+burden);
     regPay = weightedHours ? wages / weightedHours : 0;
     profit = targetProfit;
   }
+  const otRate = regPay * otMult;
+  const burdenDollar = wages * burden;
+  const weeklyPay = wages + perDiem;
   const margin = revenue ? profit/revenue : 0;
+  const contractProfit = profit * contractWeeks;
 
-  const heroEl = document.getElementById('heroValue');
-  if(mode==='pay'){
-    heroEl.textContent = fmtMoney(profit);
-    heroEl.classList.toggle('neg', profit < 0);
-    document.getElementById('heroSub').textContent = `at $${regPay.toFixed(2)}/hr regular pay`;
-  } else {
-    heroEl.textContent = '$' + regPay.toFixed(2) + '/hr';
-    heroEl.classList.toggle('neg', regPay < 0);
-    document.getElementById('heroSub').textContent = `to hit ${fmtMoney(profit)} weekly profit`;
-  }
-  document.getElementById('outRevenue').textContent = fmtMoney(revenue);
-  document.getElementById('outCost').textContent = fmtMoney(totalCost);
-  document.getElementById('outMargin').textContent = fmtPct(margin);
-  document.getElementById('outWages').textContent = fmtMoney(wages);
+  // Hours
   document.getElementById('outReg').textContent = weeklyReg.toFixed(1);
   document.getElementById('outOT').textContent = weeklyOT.toFixed(1);
   document.getElementById('outDT').textContent = weeklyDT.toFixed(1);
+
+  // Employee section
+  document.getElementById('outHourly').textContent = '$' + regPay.toFixed(2);
+  document.getElementById('solvedTag').textContent = mode === 'target' ? '(solved)' : '';
+  document.getElementById('outOTRate').textContent = '$' + otRate.toFixed(2);
+  document.getElementById('outPerDiem').textContent = fmtMoney(perDiem);
+  document.getElementById('outOtherComp').textContent = fmtMoney(otherComp);
+  document.getElementById('outWeeklyPay').textContent = fmtMoney(weeklyPay);
+
+  // Business section
+  document.getElementById('outBilling').textContent = fmtMoney(grossBilling);
+  document.getElementById('outRevenue').textContent = fmtMoney(revenue);
+  document.getElementById('outBurden').textContent = fmtMoney(burdenDollar);
+  document.getElementById('outWages').textContent = fmtMoney(wages);
+  document.getElementById('outCost').textContent = fmtMoney(totalCost);
+  const profitEl = document.getElementById('outProfit');
+  profitEl.textContent = fmtMoney(profit);
+  profitEl.classList.toggle('neg', profit < 0);
+  document.getElementById('outMarginSub').textContent = fmtPct(margin) + ' margin';
+
+  // Contract total
+  document.getElementById('contractLabel').textContent = `Total Contract Profit — ${contractWeeks} wks`;
+  const cpEl = document.getElementById('outContractProfit');
+  cpEl.textContent = fmtMoney(contractProfit);
+  cpEl.classList.toggle('neg', contractProfit < 0);
 }
 
 // ---------- Vendors tab (CRUD) ----------
