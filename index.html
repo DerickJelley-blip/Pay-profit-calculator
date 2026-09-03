@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pay &amp; Profit Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16262E;
+    --surface:#EEF2F1;
+    --card:#FFFFFF;
+    --teal:#1F6F64;
+    --teal-dark:#154E46;
+    --amber:#C97A2B;
+    --neg:#B23B3B;
+    --slate:#5C6E70;
+    --line:rgba(22,38,46,0.13);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--surface);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:940px;margin:0 auto;padding:0 18px 48px;}
+
+  header{padding:26px 2px 14px;}
+  header h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:21px;
+    font-weight:600;
+    margin:0;
+  }
+
+  .tabs{
+    display:flex;
+    gap:6px;
+    padding:2px 2px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  .tab-btn{
+    border:none;
+    background:none;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    color:var(--slate);
+    padding:10px 4px;
+    margin-right:18px;
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    margin-bottom:-1px;
+  }
+  .tab-btn.active{color:var(--teal-dark);border-bottom-color:var(--teal);}
+  .tab-panel{display:none;padding-top:18px;}
+  .tab-panel.active{display:block;}
+
+  .error-banner{
+    display:none;
+    background:#FBEAEA;
+    border:1px solid var(--neg);
+    color:var(--neg);
+    border-radius:10px;
+    padding:12px 14px;
+    font-size:13px;
+    line-height:1.5;
+    margin:0 2px 16px;
+  }
+  .error-banner.show{display:block;}
+  .error-banner button{
+    margin-top:8px;
+    background:var(--neg);
+    color:#fff;
+    border:none;
+    border-radius:7px;
+    padding:6px 12px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:720px){ .grid{grid-template-columns:1fr;} }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px 22px 8px;
+  }
+  .card h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    color:var(--teal-dark);
+    margin:0 0 16px;
+  }
+
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--slate);
+    margin-bottom:5px;
+  }
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+
+  input, select{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    color:var(--ink);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:9px 11px;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  input:focus, select:focus{border-color:var(--teal);}
+  select{appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235C6E70'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:28px;
+  }
+
+  .unit-input{position:relative;}
+  .unit-input input{padding-left:24px;}
+  .unit-input .prefix{
+    position:absolute;left:11px;top:50%;transform:translateY(-50%);
+    color:var(--slate);font-size:14px;pointer-events:none;
+  }
+  .unit-input.pct input{padding-left:11px;padding-right:24px;}
+  .unit-input.pct .suffix{
+    position:absolute;right:11px;top:50%;transform:translateY(-50%);
+    color:var(--slate);font-size:13px;pointer-events:none;
+  }
+
+  .state-note{
+    font-size:11.5px;
+    color:var(--slate);
+    line-height:1.5;
+    margin:-6px 0 16px;
+    padding:9px 11px;
+    background:var(--surface);
+    border-radius:8px;
+    border-left:3px solid var(--teal);
+  }
+
+  .mode-block{border-top:1px solid var(--line);padding-top:14px;margin-top:4px;}
+  .check-row{display:flex;align-items:center;gap:9px;margin-bottom:10px;cursor:pointer;}
+  .check-row input[type=checkbox]{width:18px;height:18px;flex:none;accent-color:var(--teal);cursor:pointer;}
+  .check-row span{font-size:13.5px;font-weight:600;color:var(--ink);}
+  .driver-field{margin-left:27px;margin-top:-2px;}
+  .driver-field input{background:#FBF0E4;border-color:var(--amber);font-weight:600;}
+  .driver-field.disabled{opacity:0.35;pointer-events:none;}
+
+  .hero{text-align:center;padding:6px 0 18px;border-bottom:1px solid var(--line);margin-bottom:16px;}
+  .hero .hero-label{font-size:11.5px;font-weight:600;letter-spacing:.03em;color:var(--slate);margin-bottom:6px;}
+  .hero .hero-value{font-family:'Space Grotesk',sans-serif;font-size:37px;font-weight:700;color:var(--teal-dark);}
+  .hero .hero-value.neg{color:var(--neg);}
+  .hero .hero-sub{font-size:12.5px;color:var(--slate);margin-top:4px;}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-bottom:6px;}
+  .stat{padding-bottom:12px;}
+  .stat .stat-label{font-size:11px;font-weight:600;color:var(--slate);margin-bottom:3px;}
+  .stat .stat-value{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:600;color:var(--ink);}
+
+  .hours-strip{display:flex;justify-content:space-between;background:var(--surface);border-radius:10px;padding:10px 14px;margin:6px 0 16px;}
+  .hours-strip div{text-align:center;flex:1;}
+  .hours-strip .h-label{font-size:10px;color:var(--slate);font-weight:600;}
+  .hours-strip .h-value{font-family:'Space Grotesk',sans-serif;font-size:15px;color:var(--ink);margin-top:2px;}
+
+  /* Vendors tab */
+  .vcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 22px 22px;}
+  .col-labels{display:grid;grid-template-columns:1fr 84px 1fr 30px;gap:10px;padding:16px 2px 8px;font-size:11px;font-weight:600;color:var(--slate);}
+  .vendor-row{display:grid;grid-template-columns:1fr 84px 1fr 30px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);}
+  .vendor-row input{width:100%;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;outline:none;}
+  .vendor-row input:focus{border-color:var(--teal);}
+  .vendor-row .pct-wrap{position:relative;}
+  .vendor-row .pct-wrap input{padding-right:22px;}
+  .vendor-row .pct-wrap span{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--slate);pointer-events:none;}
+  .del-btn{background:none;border:none;color:var(--slate);font-size:18px;cursor:pointer;width:30px;height:30px;border-radius:6px;}
+  .del-btn:hover{color:var(--neg);background:var(--surface);}
+  .add-row{width:100%;background:none;border:1px dashed var(--line);color:var(--teal-dark);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;border-radius:9px;padding:11px;cursor:pointer;margin-top:14px;}
+  .add-row:hover{border-color:var(--teal);}
+  .empty-note{color:var(--slate);font-size:13px;padding:20px 2px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header><h1>Pay &amp; Profit Calculator</h1></header>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabBtnCalc" onclick="showTab('calc')">Calculator</button>
+    <button class="tab-btn" id="tabBtnVendors" onclick="showTab('vendors')">Vendor Rates</button>
+  </div>
+
+  <div class="error-banner" id="errorBanner">
+    <div id="errorText"></div>
+    <button onclick="retryLoad()">Retry</button>
+  </div>
+
+  <!-- ===== CALCULATOR TAB ===== -->
+  <div class="tab-panel active" id="panelCalc">
+    <div class="grid">
+      <div class="card">
+        <h2>Req Details</h2>
+
+        <div class="field">
+          <label>Work State</label>
+          <select id="state" onchange="onStateChange()"><option>Loading…</option></select>
+        </div>
+        <div class="state-note" id="stateNote">Loading state rules from Supabase…</div>
+
+        <div class="field">
+          <label>VMS Vendor</label>
+          <select id="vendor" onchange="onVendorChange()"><option>Loading…</option></select>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>VMS Fee</label>
+            <div class="unit-input pct"><input id="vmsFee" type="number" step="0.1" value="0"><span class="suffix">%</span></div>
+          </div>
+          <div class="field">
+            <label>Factoring Fee</label>
+            <div class="unit-input pct"><input id="factFee" type="number" step="0.1" value="0"><span class="suffix">%</span></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Bill Rate</label>
+          <div class="unit-input"><span class="prefix">$</span><input id="billRate" type="number" step="0.01" value="79"></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Shifts / Week</label><input id="shifts" type="number" step="1" value="3"></div>
+          <div class="field"><label>Hours / Shift</label><input id="hoursShift" type="number" step="0.5" value="12"></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Weekly Per Diem</label>
+            <div class="unit-input"><span class="prefix">$</span><input id="perDiem" type="number" step="1" value="1500"></div>
+          </div>
+          <div class="field">
+            <label>Burden</label>
+            <div class="unit-input pct"><input id="burden" type="number" step="0.1" value="17"><span class="suffix">%</span></div>
+          </div>
+        </div>
+
+        <div class="mode-block">
+          <label class="check-row">
+            <input type="checkbox" id="chkPay" checked onchange="onModeCheck('pay')">
+            <span>Set the pay rate</span>
+          </label>
+          <div class="field driver-field" id="payField">
+            <div class="unit-input"><span class="prefix">$</span><input id="regPay" type="number" step="0.25" value="20"></div>
+          </div>
+
+          <label class="check-row">
+            <input type="checkbox" id="chkTarget" onchange="onModeCheck('target')">
+            <span>Target a profit number</span>
+          </label>
+          <div class="field driver-field disabled" id="targetField">
+            <div class="unit-input"><span class="prefix">$</span><input id="targetProfit" type="number" step="10" value="500"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hero">
+          <div class="hero-label" id="heroLabel">Weekly Profit</div>
+          <div class="hero-value" id="heroValue">$0</div>
+          <div class="hero-sub" id="heroSub">at $0.00/hr regular pay</div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-label">Gross Weekly Revenue</div><div class="stat-value" id="outRevenue">$0</div></div>
+          <div class="stat"><div class="stat-label">Total Employee Cost</div><div class="stat-value" id="outCost">$0</div></div>
+          <div class="stat"><div class="stat-label">Profit Margin</div><div class="stat-value" id="outMargin">0.0%</div></div>
+          <div class="stat"><div class="stat-label">Weekly Wages</div><div class="stat-value" id="outWages">$0</div></div>
+        </div>
+        <div class="hours-strip">
+          <div><div class="h-label">REG HRS</div><div class="h-value" id="outReg">0</div></div>
+          <div><div class="h-label">OT HRS</div><div class="h-value" id="outOT">0</div></div>
+          <div><div class="h-label">DT HRS</div><div class="h-value" id="outDT">0</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== VENDORS TAB ===== -->
+  <div class="tab-panel" id="panelVendors">
+    <div class="vcard">
+      <div class="col-labels"><span>Vendor</span><span>VMS Fee</span><span>Notes</span><span></span></div>
+      <div id="vendorList"></div>
+      <div id="emptyNote" class="empty-note" style="display:none;">No vendors saved yet — add your first one below.</div>
+      <button class="add-row" onclick="addVendor()">+ Add vendor</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SUPABASE_URL = 'https://ypbmkejzwtilznwzbrao.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwYm1rZWp6d3RpbHpud3picmFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NjM1ODYsImV4cCI6MjA5NTIzOTU4Nn0.ud88ALMC7yv3OGovnAfZdBuiJIeIWK2MR3jyxdQzxno';
+
+async function sb(path, options={}){
+  let res;
+  try{
+    res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      ...options,
+      headers:{
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type':'application/json',
+        'Prefer': options.prefer || 'return=representation',
+        ...(options.headers||{})
+      }
+    });
+  }catch(networkErr){
+    throw new Error(`Network request to Supabase failed (${networkErr.message}). This usually means the page can't reach ${SUPABASE_URL} — check your connection, or that this page isn't blocked by a browser extension/sandbox.`);
+  }
+  if(!res.ok){
+    let body = '';
+    try{ body = await res.text(); }catch(e){}
+    throw new Error(`Supabase returned ${res.status} ${res.statusText} for ${path}. ${body}`);
+  }
+  return res.status===204 ? null : res.json();
+}
+
+function showError(msg){
+  const banner = document.getElementById('errorBanner');
+  document.getElementById('errorText').textContent = msg;
+  banner.classList.add('show');
+  console.error(msg);
+}
+function clearError(){
+  document.getElementById('errorBanner').classList.remove('show');
+}
+
+function showTab(tab){
+  document.getElementById('panelCalc').classList.toggle('active', tab==='calc');
+  document.getElementById('panelVendors').classList.toggle('active', tab==='vendors');
+  document.getElementById('tabBtnCalc').classList.toggle('active', tab==='calc');
+  document.getElementById('tabBtnVendors').classList.toggle('active', tab==='vendors');
+}
+
+let states = [];
+let vendors = [];
+let mode = 'pay';
+
+function num(id){ return parseFloat(document.getElementById(id).value) || 0; }
+function fmtMoney(v){
+  const neg = v < 0;
+  const s = Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+  return (neg? '-$':'$') + s;
+}
+function fmtPct(v){ return (v*100).toFixed(1) + '%'; }
+function escapeAttr(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
+
+// ---------- Calculator data ----------
+async function loadStates(){
+  states = await sb('ms_state_ot_rules?select=*&order=state_name.asc');
+  const sel = document.getElementById('state');
+  if(states.length === 0){
+    sel.innerHTML = `<option value="">No states found in Supabase</option>`;
+    return;
+  }
+  sel.innerHTML = states.map(s => `<option value="${s.state_code}">${s.state_name}</option>`).join('');
+  const ca = states.findIndex(s => s.state_code === 'CA');
+  if(ca >= 0) sel.selectedIndex = ca;
+  onStateChange();
+}
+async function loadVendorsForDropdown(){
+  const sel = document.getElementById('vendor');
+  if(vendors.length === 0){
+    sel.innerHTML = `<option value="">No vendors saved yet</option>`;
+    return;
+  }
+  sel.innerHTML = vendors.map((v,i) => `<option value="${i}">${v.name}</option>`).join('');
+  onVendorChange();
+}
+
+function currentState(){
+  const code = document.getElementById('state').value;
+  return states.find(s => s.state_code === code);
+}
+function onStateChange(){
+  const s = currentState();
+  document.getElementById('stateNote').textContent = s ? (s.notes || '') : '';
+  compute();
+}
+function onVendorChange(){
+  const i = document.getElementById('vendor').value;
+  if(i === '' || !vendors[i]) return;
+  const pct = Number(vendors[i].vms_fee_pct)*100;
+  document.getElementById('vmsFee').value = pct.toFixed(2).replace(/\.00$/,'');
+  compute();
+}
+
+function onModeCheck(which){
+  document.getElementById('chkPay').checked = which==='pay';
+  document.getElementById('chkTarget').checked = which==='target';
+  mode = which;
+  document.getElementById('payField').classList.toggle('disabled', mode !== 'pay');
+  document.getElementById('targetField').classList.toggle('disabled', mode !== 'target');
+  document.getElementById('heroLabel').textContent = mode==='pay' ? 'Weekly Profit' : 'Max Regular Hourly Pay';
+  compute();
+}
+
+function compute(){
+  const s = currentState();
+  if(!s) return;
+
+  const vmsFee = num('vmsFee')/100;
+  const factFee = num('factFee')/100;
+  const billRate = num('billRate');
+  const shifts = num('shifts');
+  const hoursShift = num('hoursShift');
+  const perDiem = num('perDiem');
+  const burden = num('burden')/100;
+
+  const brAfterVms = billRate * (1 - vmsFee);
+  const brAfterFact = brAfterVms * (1 - factFee);
+  const billedHours = shifts * hoursShift;
+  const revenue = brAfterFact * billedHours;
+
+  const mealDed = hoursShift > 5 ? 0.5 : 0;
+  const paidHoursShift = Math.max(hoursShift - mealDed, 0);
+  const totalPaidHours = shifts * paidHoursShift;
+
+  const otMult = Number(s.ot_multiplier) || 1.5;
+  let weeklyReg, weeklyOT, weeklyDT, weightedHours;
+
+  const dailyOTRaw = s.daily_ot_threshold_hrs;
+  if(dailyOTRaw !== null && dailyOTRaw !== undefined && dailyOTRaw !== ''){
+    const dailyOTThresh = Number(dailyOTRaw);
+    const dailyDTThresh = (s.daily_dt_threshold_hrs !== null && s.daily_dt_threshold_hrs !== undefined) ? Number(s.daily_dt_threshold_hrs) : null;
+    const dtMult = (s.dt_multiplier !== null && s.dt_multiplier !== undefined) ? Number(s.dt_multiplier) : otMult;
+
+    const dailyReg = Math.min(paidHoursShift, dailyOTThresh);
+    let dailyOT, dailyDT;
+    if(dailyDTThresh){
+      dailyOT = Math.min(Math.max(paidHoursShift - dailyOTThresh, 0), dailyDTThresh - dailyOTThresh);
+      dailyDT = Math.max(paidHoursShift - dailyDTThresh, 0);
+    } else {
+      dailyOT = Math.max(paidHoursShift - dailyOTThresh, 0);
+      dailyDT = 0;
+    }
+    weeklyReg = shifts*dailyReg;
+    weeklyOT = shifts*dailyOT;
+    weeklyDT = shifts*dailyDT;
+    weightedHours = weeklyReg + otMult*weeklyOT + dtMult*weeklyDT;
+  } else {
+    const weeklyThresh = Number(s.weekly_ot_threshold_hrs) || 40;
+    weeklyReg = Math.min(totalPaidHours, weeklyThresh);
+    weeklyOT = Math.max(totalPaidHours - weeklyThresh, 0);
+    weeklyDT = 0;
+    weightedHours = weeklyReg + otMult*weeklyOT;
+  }
+
+  let regPay, wages, totalCost, profit;
+  if(mode === 'pay'){
+    regPay = num('regPay');
+    wages = regPay * weightedHours;
+    totalCost = wages*(1+burden) + perDiem;
+    profit = revenue - totalCost;
+  } else {
+    const targetProfit = num('targetProfit');
+    totalCost = revenue - targetProfit;
+    wages = (totalCost - perDiem) / (1+burden);
+    regPay = weightedHours ? wages / weightedHours : 0;
+    profit = targetProfit;
+  }
+  const margin = revenue ? profit/revenue : 0;
+
+  const heroEl = document.getElementById('heroValue');
+  if(mode==='pay'){
+    heroEl.textContent = fmtMoney(profit);
+    heroEl.classList.toggle('neg', profit < 0);
+    document.getElementById('heroSub').textContent = `at $${regPay.toFixed(2)}/hr regular pay`;
+  } else {
+    heroEl.textContent = '$' + regPay.toFixed(2) + '/hr';
+    heroEl.classList.toggle('neg', regPay < 0);
+    document.getElementById('heroSub').textContent = `to hit ${fmtMoney(profit)} weekly profit`;
+  }
+  document.getElementById('outRevenue').textContent = fmtMoney(revenue);
+  document.getElementById('outCost').textContent = fmtMoney(totalCost);
+  document.getElementById('outMargin').textContent = fmtPct(margin);
+  document.getElementById('outWages').textContent = fmtMoney(wages);
+  document.getElementById('outReg').textContent = weeklyReg.toFixed(1);
+  document.getElementById('outOT').textContent = weeklyOT.toFixed(1);
+  document.getElementById('outDT').textContent = weeklyDT.toFixed(1);
+}
+
+// ---------- Vendors tab (CRUD) ----------
+async function loadVendors(){
+  vendors = await sb('ms_vendors?select=*&order=name.asc');
+  renderVendorTab();
+  await loadVendorsForDropdown();
+}
+function renderVendorTab(){
+  const wrap = document.getElementById('vendorList');
+  document.getElementById('emptyNote').style.display = vendors.length ? 'none' : 'block';
+  wrap.innerHTML = vendors.map(v => `
+    <div class="vendor-row" data-id="${v.id}">
+      <input value="${escapeAttr(v.name)}" onchange="saveVendorField('${v.id}','name',this.value)">
+      <div class="pct-wrap">
+        <input type="number" step="0.1" value="${(Number(v.vms_fee_pct)*100).toFixed(2).replace(/\.00$/,'')}" onchange="saveVendorField('${v.id}','vms_fee_pct',this.value/100)">
+        <span>%</span>
+      </div>
+      <input value="${escapeAttr(v.notes)}" placeholder="—" onchange="saveVendorField('${v.id}','notes',this.value)">
+      <button class="del-btn" onclick="removeVendor('${v.id}')" title="Delete">×</button>
+    </div>
+  `).join('');
+}
+async function saveVendorField(id, key, value){
+  try{
+    const patch = {[key]: value, updated_at: new Date().toISOString()};
+    await sb(`ms_vendors?id=eq.${id}`, {method:'PATCH', body: JSON.stringify(patch), prefer:'return=minimal'});
+    const v = vendors.find(v => v.id === id);
+    if(v){ v[key] = value; }
+    await loadVendorsForDropdown();
+    clearError();
+  }catch(e){ showError('Could not save vendor change: ' + e.message); }
+}
+async function addVendor(){
+  try{
+    const created = await sb('ms_vendors', {method:'POST', body: JSON.stringify({name:'New Vendor', vms_fee_pct:0})});
+    vendors.push(created[0]);
+    renderVendorTab();
+    await loadVendorsForDropdown();
+    clearError();
+  }catch(e){ showError('Could not add vendor: ' + e.message); }
+}
+async function removeVendor(id){
+  try{
+    await sb(`ms_vendors?id=eq.${id}`, {method:'DELETE', prefer:'return=minimal'});
+    vendors = vendors.filter(v => v.id !== id);
+    renderVendorTab();
+    await loadVendorsForDropdown();
+    clearError();
+  }catch(e){ showError('Could not delete vendor: ' + e.message); }
+}
+
+// ---------- Init ----------
+document.querySelectorAll('input').forEach(el => el.addEventListener('input', compute));
+
+async function retryLoad(){
+  clearError();
+  await init();
+}
+async function init(){
+  try{
+    await loadStates();
+    clearError();
+  }catch(e){
+    showError('Could not load state overtime rules: ' + e.message);
+  }
+  try{
+    await loadVendors();
+    clearError();
+  }catch(e){
+    showError('Could not load vendors: ' + e.message);
+  }
+  compute();
+}
+init();
+</script>
+</body>
+</html>
