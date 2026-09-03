@@ -314,7 +314,7 @@
           </div>
           <div class="stat"><div class="stat-label">OT Rate</div><div class="stat-value" id="outOTRate">$0.00</div></div>
           <div class="stat"><div class="stat-label">Per Diem</div><div class="stat-value" id="outPerDiem">$0</div></div>
-          <div class="stat"><div class="stat-label">Other Comp</div><div class="stat-value" id="outOtherComp">$0</div></div>
+          <div class="stat"><div class="stat-label">Weekly Comp</div><div class="stat-value" id="outOtherComp">$0</div></div>
         </div>
         <div class="stat-full">
           <div class="stat-label">Weekly Pay (comp + per diem)</div>
@@ -483,8 +483,7 @@ function compute(){
   const grossBilling = billRate * billedHours;
   const revenue = brAfterFact * billedHours;
 
-  const mealDed = hoursShift > 5 ? 0.5 : 0;
-  const paidHoursShift = Math.max(hoursShift - mealDed, 0);
+  const paidHoursShift = hoursShift;
   const totalPaidHours = shifts * paidHoursShift;
 
   const otMult = Number(s.ot_multiplier) || 1.5;
@@ -531,9 +530,9 @@ function compute(){
     profit = targetProfit;
   }
   const otRate = regPay * otMult;
-  const otherComp = (weeklyReg*regPay) + (weeklyOT*otRate) - perDiem;
-  const burdenDollar = wages * burden;
-  const weeklyPay = wages + perDiem;
+  const weeklyComp = wages;
+  const burdenDollar = weeklyComp * burden;
+  const weeklyPay = weeklyComp + perDiem;
   const margin = revenue ? profit/revenue : 0;
   const contractProfit = profit * contractWeeks;
 
@@ -547,9 +546,9 @@ function compute(){
   document.getElementById('solvedTag').textContent = mode === 'target' ? '(solved)' : '';
   document.getElementById('outOTRate').textContent = '$' + otRate.toFixed(2);
   document.getElementById('outPerDiem').textContent = fmtMoney(perDiem);
-  const otherCompEl = document.getElementById('outOtherComp');
-  otherCompEl.textContent = fmtMoney(otherComp);
-  otherCompEl.classList.toggle('neg', otherComp < 0);
+  const weeklyCompEl = document.getElementById('outOtherComp');
+  weeklyCompEl.textContent = fmtMoney(weeklyComp);
+  weeklyCompEl.classList.toggle('neg', weeklyComp < 0);
   document.getElementById('outWeeklyPay').textContent = fmtMoney(weeklyPay);
 
   // Business section
