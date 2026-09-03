@@ -270,20 +270,14 @@
             <div class="unit-input"><span class="prefix">$</span><input id="perDiem" type="number" step="1" value="1500"></div>
           </div>
           <div class="field">
-            <label>Other Compensation</label>
-            <div class="unit-input"><span class="prefix">$</span><input id="otherComp" type="number" step="1" value="0"></div>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
             <label>Burden</label>
             <div class="unit-input pct"><input id="burden" type="number" step="0.1" value="17"><span class="suffix">%</span></div>
           </div>
-          <div class="field">
-            <label>Contract Weeks</label>
-            <input id="contractWeeks" type="number" step="1" value="13">
-          </div>
+        </div>
+
+        <div class="field">
+          <label>Contract Weeks</label>
+          <input id="contractWeeks" type="number" step="1" value="13">
         </div>
 
         <div class="mode-block">
@@ -334,7 +328,7 @@
           <div class="stat"><div class="stat-label">Gross Weekly Billing</div><div class="stat-value" id="outBilling">$0</div></div>
           <div class="stat"><div class="stat-label">Gross Weekly Revenue</div><div class="stat-value" id="outRevenue">$0</div></div>
           <div class="stat"><div class="stat-label">Burden Cost</div><div class="stat-value" id="outBurden">$0</div></div>
-          <div class="stat"><div class="stat-label">Weekly Compensation</div><div class="stat-value" id="outWages">$0</div></div>
+          <div class="stat"><div class="stat-label">Weekly Employee Compensation</div><div class="stat-value" id="outWages">$0</div></div>
           <div class="stat"><div class="stat-label">Total Employee Cost</div><div class="stat-value" id="outCost">$0</div></div>
           <div class="stat">
             <div class="stat-label">Weekly Profit</div>
@@ -480,7 +474,6 @@ function compute(){
   const shifts = num('shifts');
   const hoursShift = num('hoursShift');
   const perDiem = num('perDiem');
-  const otherComp = num('otherComp');
   const burden = num('burden')/100;
   const contractWeeks = num('contractWeeks') || 13;
 
@@ -528,16 +521,17 @@ function compute(){
   if(mode === 'pay'){
     regPay = num('regPay');
     wages = regPay * weightedHours;
-    totalCost = wages*(1+burden) + perDiem + otherComp;
+    totalCost = wages*(1+burden) + perDiem;
     profit = revenue - totalCost;
   } else {
     const targetProfit = num('targetProfit');
     totalCost = revenue - targetProfit;
-    wages = (totalCost - perDiem - otherComp) / (1+burden);
+    wages = (totalCost - perDiem) / (1+burden);
     regPay = weightedHours ? wages / weightedHours : 0;
     profit = targetProfit;
   }
   const otRate = regPay * otMult;
+  const otherComp = (weeklyReg*regPay) + (weeklyOT*otRate) - perDiem;
   const burdenDollar = wages * burden;
   const weeklyPay = wages + perDiem;
   const margin = revenue ? profit/revenue : 0;
@@ -553,14 +547,16 @@ function compute(){
   document.getElementById('solvedTag').textContent = mode === 'target' ? '(solved)' : '';
   document.getElementById('outOTRate').textContent = '$' + otRate.toFixed(2);
   document.getElementById('outPerDiem').textContent = fmtMoney(perDiem);
-  document.getElementById('outOtherComp').textContent = fmtMoney(otherComp);
+  const otherCompEl = document.getElementById('outOtherComp');
+  otherCompEl.textContent = fmtMoney(otherComp);
+  otherCompEl.classList.toggle('neg', otherComp < 0);
   document.getElementById('outWeeklyPay').textContent = fmtMoney(weeklyPay);
 
   // Business section
   document.getElementById('outBilling').textContent = fmtMoney(grossBilling);
   document.getElementById('outRevenue').textContent = fmtMoney(revenue);
   document.getElementById('outBurden').textContent = fmtMoney(burdenDollar);
-  document.getElementById('outWages').textContent = fmtMoney(wages);
+  document.getElementById('outWages').textContent = fmtMoney(weeklyPay);
   document.getElementById('outCost').textContent = fmtMoney(totalCost);
   const profitEl = document.getElementById('outProfit');
   profitEl.textContent = fmtMoney(profit);
