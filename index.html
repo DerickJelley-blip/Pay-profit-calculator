@@ -189,6 +189,7 @@
   .contract-hero .hero-label{font-size:11.5px;font-weight:600;color:var(--slate);margin-bottom:6px;}
   .contract-hero .hero-value{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;color:var(--amber);}
   .contract-hero .hero-value.neg{color:var(--neg);}
+  .contract-hero .hero-sub{font-size:11.5px;color:var(--slate);margin-top:6px;}
 
   .hours-strip{display:flex;justify-content:space-between;background:var(--surface);border-radius:10px;padding:10px 14px;margin:6px 0 16px;}
   .hours-strip div{text-align:center;flex:1;}
@@ -204,6 +205,11 @@
   .vendor-row .pct-wrap{position:relative;}
   .vendor-row .pct-wrap input{padding-right:22px;}
   .vendor-row .pct-wrap span{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--slate);pointer-events:none;}
+
+  .col-labels-hosp{display:grid;grid-template-columns:1fr 92px 84px 1fr 30px;gap:10px;padding:16px 2px 8px;font-size:11px;font-weight:600;color:var(--slate);}
+  .hospital-row{display:grid;grid-template-columns:1fr 92px 84px 1fr 30px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);}
+  .hospital-row input{width:100%;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;outline:none;}
+  .hospital-row input:focus{border-color:var(--teal);}
   .del-btn{background:none;border:none;color:var(--slate);font-size:18px;cursor:pointer;width:30px;height:30px;border-radius:6px;}
   .del-btn:hover{color:var(--neg);background:var(--surface);}
   .add-row{width:100%;background:none;border:1px dashed var(--line);color:var(--teal-dark);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;border-radius:9px;padding:11px;cursor:pointer;margin-top:14px;}
@@ -219,6 +225,7 @@
   <div class="tabs">
     <button class="tab-btn active" id="tabBtnCalc" onclick="showTab('calc')">Calculator</button>
     <button class="tab-btn" id="tabBtnVendors" onclick="showTab('vendors')">Vendor Rates</button>
+    <button class="tab-btn" id="tabBtnHospitals" onclick="showTab('hospitals')">Hospitals</button>
   </div>
 
   <div class="error-banner" id="errorBanner">
@@ -241,6 +248,11 @@
         <div class="field">
           <label>VMS Vendor</label>
           <select id="vendor" onchange="onVendorChange()"><option>Loading…</option></select>
+        </div>
+
+        <div class="field">
+          <label>Hospital</label>
+          <select id="hospital" onchange="onHospitalChange()"><option>Loading…</option></select>
         </div>
 
         <div class="field-row">
@@ -275,6 +287,17 @@
           </div>
         </div>
 
+        <div class="field-row">
+          <div class="field">
+            <label>Onboarding Cost</label>
+            <div class="unit-input"><span class="prefix">$</span><input id="onboardingCost" type="number" step="1" value="0"></div>
+          </div>
+          <div class="field">
+            <label>Non-Billable Orient. Hrs</label>
+            <input id="orientationHours" type="number" step="1" value="0">
+          </div>
+        </div>
+
         <div class="field">
           <label>Contract Weeks</label>
           <input id="contractWeeks" type="number" step="1" value="13">
@@ -295,6 +318,14 @@
           </label>
           <div class="field driver-field disabled" id="targetField">
             <div class="unit-input"><span class="prefix">$</span><input id="targetProfit" type="number" step="10" value="500"></div>
+          </div>
+
+          <label class="check-row">
+            <input type="checkbox" id="chkMargin" onchange="onModeCheck('margin')">
+            <span>Target a profit margin</span>
+          </label>
+          <div class="field driver-field disabled" id="marginField">
+            <div class="unit-input pct"><input id="targetMargin" type="number" step="0.5" value="15"><span class="suffix">%</span></div>
           </div>
         </div>
       </div>
@@ -340,6 +371,7 @@
         <div class="contract-hero">
           <div class="hero-label" id="contractLabel">Total Contract Profit — 13 wks</div>
           <div class="hero-value" id="outContractProfit">$0</div>
+          <div class="hero-sub" id="contractSub"></div>
         </div>
       </div>
     </div>
@@ -352,6 +384,16 @@
       <div id="vendorList"></div>
       <div id="emptyNote" class="empty-note" style="display:none;">No vendors saved yet — add your first one below.</div>
       <button class="add-row" onclick="addVendor()">+ Add vendor</button>
+    </div>
+  </div>
+
+  <!-- ===== HOSPITALS TAB ===== -->
+  <div class="tab-panel" id="panelHospitals">
+    <div class="vcard">
+      <div class="col-labels-hosp"><span>Hospital</span><span>Onboarding $</span><span>Orient. Hrs</span><span>Notes</span><span></span></div>
+      <div id="hospitalList"></div>
+      <div id="emptyNoteHosp" class="empty-note" style="display:none;">No hospitals saved yet — add your first one below.</div>
+      <button class="add-row" onclick="addHospital()">+ Add hospital</button>
     </div>
   </div>
 
@@ -398,12 +440,15 @@ function clearError(){
 function showTab(tab){
   document.getElementById('panelCalc').classList.toggle('active', tab==='calc');
   document.getElementById('panelVendors').classList.toggle('active', tab==='vendors');
+  document.getElementById('panelHospitals').classList.toggle('active', tab==='hospitals');
   document.getElementById('tabBtnCalc').classList.toggle('active', tab==='calc');
   document.getElementById('tabBtnVendors').classList.toggle('active', tab==='vendors');
+  document.getElementById('tabBtnHospitals').classList.toggle('active', tab==='hospitals');
 }
 
 let states = [];
 let vendors = [];
+let hospitals = [];
 let mode = 'pay';
 
 function num(id){ return parseFloat(document.getElementById(id).value) || 0; }
@@ -458,9 +503,11 @@ function onVendorChange(){
 function onModeCheck(which){
   document.getElementById('chkPay').checked = which==='pay';
   document.getElementById('chkTarget').checked = which==='target';
+  document.getElementById('chkMargin').checked = which==='margin';
   mode = which;
   document.getElementById('payField').classList.toggle('disabled', mode !== 'pay');
   document.getElementById('targetField').classList.toggle('disabled', mode !== 'target');
+  document.getElementById('marginField').classList.toggle('disabled', mode !== 'margin');
   compute();
 }
 
@@ -476,6 +523,8 @@ function compute(){
   const perDiem = num('perDiem');
   const burden = num('burden')/100;
   const contractWeeks = num('contractWeeks') || 13;
+  const onboardingCost = num('onboardingCost');
+  const orientationHours = num('orientationHours');
 
   const brAfterVms = billRate * (1 - vmsFee);
   const brAfterFact = brAfterVms * (1 - factFee);
@@ -523,7 +572,13 @@ function compute(){
     totalCost = wages*(1+burden) + perDiem;
     profit = revenue - totalCost;
   } else {
-    const targetProfit = num('targetProfit');
+    let targetProfit;
+    if(mode === 'margin'){
+      const targetMarginPct = num('targetMargin')/100;
+      targetProfit = targetMarginPct * revenue;
+    } else {
+      targetProfit = num('targetProfit');
+    }
     totalCost = revenue - targetProfit;
     wages = (totalCost - perDiem) / (1+burden);
     regPay = weightedHours ? wages / weightedHours : 0;
@@ -534,7 +589,11 @@ function compute(){
   const burdenDollar = weeklyComp * burden;
   const weeklyPay = weeklyComp + perDiem;
   const margin = revenue ? profit/revenue : 0;
-  const contractProfit = profit * contractWeeks;
+
+  // One-time contract-level costs: onboarding + non-billable orientation hours (paid, burdened, no revenue)
+  const orientationCost = orientationHours * regPay * (1+burden);
+  const oneTimeCosts = onboardingCost + orientationCost;
+  const contractProfit = (profit * contractWeeks) - oneTimeCosts;
 
   // Hours
   document.getElementById('outReg').textContent = weeklyReg.toFixed(1);
@@ -543,7 +602,7 @@ function compute(){
 
   // Employee section
   document.getElementById('outHourly').textContent = '$' + regPay.toFixed(2);
-  document.getElementById('solvedTag').textContent = mode === 'target' ? '(solved)' : '';
+  document.getElementById('solvedTag').textContent = (mode === 'target' || mode === 'margin') ? '(solved)' : '';
   document.getElementById('outOTRate').textContent = '$' + otRate.toFixed(2);
   document.getElementById('outPerDiem').textContent = fmtMoney(perDiem);
   const weeklyCompEl = document.getElementById('outOtherComp');
@@ -567,6 +626,10 @@ function compute(){
   const cpEl = document.getElementById('outContractProfit');
   cpEl.textContent = fmtMoney(contractProfit);
   cpEl.classList.toggle('neg', contractProfit < 0);
+  const oneTimeParts = [];
+  if(onboardingCost) oneTimeParts.push(`${fmtMoney(onboardingCost)} onboarding`);
+  if(orientationCost) oneTimeParts.push(`${fmtMoney(orientationCost)} orientation (${orientationHours} hrs)`);
+  document.getElementById('contractSub').textContent = oneTimeParts.length ? `after ${oneTimeParts.join(' + ')}` : '';
 }
 
 // ---------- Vendors tab (CRUD) ----------
@@ -619,6 +682,70 @@ async function removeVendor(id){
   }catch(e){ showError('Could not delete vendor: ' + e.message); }
 }
 
+// ---------- Hospitals tab (CRUD) + Calculator dropdown ----------
+async function loadHospitals(){
+  hospitals = await sb('ms_hospitals?select=*&order=name.asc');
+  renderHospitalTab();
+  await loadHospitalsForDropdown();
+}
+async function loadHospitalsForDropdown(){
+  const sel = document.getElementById('hospital');
+  if(hospitals.length === 0){
+    sel.innerHTML = `<option value="">No hospitals saved yet</option>`;
+    return;
+  }
+  sel.innerHTML = hospitals.map((h,i) => `<option value="${i}">${h.name}</option>`).join('');
+  onHospitalChange();
+}
+function onHospitalChange(){
+  const i = document.getElementById('hospital').value;
+  if(i === '' || !hospitals[i]) return;
+  document.getElementById('onboardingCost').value = Number(hospitals[i].default_onboarding_cost);
+  document.getElementById('orientationHours').value = Number(hospitals[i].default_orientation_hours);
+  compute();
+}
+function renderHospitalTab(){
+  const wrap = document.getElementById('hospitalList');
+  document.getElementById('emptyNoteHosp').style.display = hospitals.length ? 'none' : 'block';
+  wrap.innerHTML = hospitals.map(h => `
+    <div class="hospital-row" data-id="${h.id}">
+      <input value="${escapeAttr(h.name)}" onchange="saveHospitalField('${h.id}','name',this.value)">
+      <input type="number" step="1" value="${Number(h.default_onboarding_cost)}" onchange="saveHospitalField('${h.id}','default_onboarding_cost',this.value)">
+      <input type="number" step="1" value="${Number(h.default_orientation_hours)}" onchange="saveHospitalField('${h.id}','default_orientation_hours',this.value)">
+      <input value="${escapeAttr(h.notes)}" placeholder="—" onchange="saveHospitalField('${h.id}','notes',this.value)">
+      <button class="del-btn" onclick="removeHospital('${h.id}')" title="Delete">×</button>
+    </div>
+  `).join('');
+}
+async function saveHospitalField(id, key, value){
+  try{
+    const patch = {[key]: value, updated_at: new Date().toISOString()};
+    await sb(`ms_hospitals?id=eq.${id}`, {method:'PATCH', body: JSON.stringify(patch), prefer:'return=minimal'});
+    const h = hospitals.find(h => h.id === id);
+    if(h){ h[key] = value; }
+    await loadHospitalsForDropdown();
+    clearError();
+  }catch(e){ showError('Could not save hospital change: ' + e.message); }
+}
+async function addHospital(){
+  try{
+    const created = await sb('ms_hospitals', {method:'POST', body: JSON.stringify({name:'New Hospital', default_onboarding_cost:0, default_orientation_hours:0})});
+    hospitals.push(created[0]);
+    renderHospitalTab();
+    await loadHospitalsForDropdown();
+    clearError();
+  }catch(e){ showError('Could not add hospital: ' + e.message); }
+}
+async function removeHospital(id){
+  try{
+    await sb(`ms_hospitals?id=eq.${id}`, {method:'DELETE', prefer:'return=minimal'});
+    hospitals = hospitals.filter(h => h.id !== id);
+    renderHospitalTab();
+    await loadHospitalsForDropdown();
+    clearError();
+  }catch(e){ showError('Could not delete hospital: ' + e.message); }
+}
+
 // ---------- Init ----------
 document.querySelectorAll('input').forEach(el => el.addEventListener('input', compute));
 
@@ -638,6 +765,12 @@ async function init(){
     clearError();
   }catch(e){
     showError('Could not load vendors: ' + e.message);
+  }
+  try{
+    await loadHospitals();
+    clearError();
+  }catch(e){
+    showError('Could not load hospitals: ' + e.message);
   }
   compute();
 }
