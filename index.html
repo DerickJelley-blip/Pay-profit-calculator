@@ -164,6 +164,7 @@
   .driver-field{margin-left:27px;margin-top:-2px;}
   .driver-field input{background:#FBF0E4;border-color:var(--amber);font-weight:600;}
   .driver-field.disabled{opacity:0.35;pointer-events:none;}
+  #orientationRate.disabled-look{opacity:0.4;pointer-events:none;}
 
   .hero{text-align:center;padding:6px 0 18px;border-bottom:1px solid var(--line);margin-bottom:16px;}
   .hero .hero-label{font-size:11.5px;font-weight:600;letter-spacing:.03em;color:var(--slate);margin-bottom:6px;}
@@ -206,11 +207,30 @@
   .vendor-row .pct-wrap input{padding-right:22px;}
   .vendor-row .pct-wrap span{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--slate);pointer-events:none;}
 
-  .col-labels-hosp{display:grid;grid-template-columns:1fr 92px 84px 1fr 30px;gap:10px;padding:16px 2px 8px;font-size:11px;font-weight:600;color:var(--slate);}
-  .hospital-row{display:grid;grid-template-columns:1fr 92px 84px 1fr 30px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);}
-  .hospital-row input{width:100%;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;outline:none;}
-  .hospital-row input:focus{border-color:var(--teal);}
-  .del-btn{background:none;border:none;color:var(--slate);font-size:18px;cursor:pointer;width:30px;height:30px;border-radius:6px;}
+  .hosp-intro{font-size:12px;color:var(--slate);line-height:1.5;padding:16px 2px 4px;}
+
+  .hospital-card{border-top:1px solid var(--line);padding:14px 0;}
+  .hospital-card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .hospital-card-top input{flex:1;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;outline:none;}
+  .hospital-card-top input:focus{border-color:var(--teal);}
+  .hospital-card-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr;gap:10px;margin-bottom:10px;}
+  @media (max-width:640px){ .hospital-card-grid{grid-template-columns:1fr 1fr;} }
+  .hc-field label{display:block;font-size:10.5px;font-weight:600;color:var(--slate);margin-bottom:4px;}
+  .hc-field input, .hc-field select{width:100%;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 9px;outline:none;}
+  .hc-field select{appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235C6E70'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 9px center;padding-right:24px;
+  }
+  .hc-field input:focus, .hc-field select:focus{border-color:var(--teal);}
+  .hospital-card-grid .unit-input input{padding-left:22px;}
+  .hospital-card-grid .unit-input .prefix{font-size:13px;left:9px;}
+  .hc-checkbox{margin-bottom:10px;}
+  .hc-checkbox input[type=checkbox]{width:16px;height:16px;accent-color:var(--teal);}
+  .hc-checkbox span{font-size:12.5px;font-weight:500;color:var(--ink);}
+  .hc-notes{width:100%;font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 9px;outline:none;}
+  .hc-notes:focus{border-color:var(--teal);}
+
+  .del-btn{background:none;border:none;color:var(--slate);font-size:18px;cursor:pointer;width:30px;height:30px;border-radius:6px;flex:none;}
   .del-btn:hover{color:var(--neg);background:var(--surface);}
   .add-row{width:100%;background:none;border:1px dashed var(--line);color:var(--teal-dark);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;border-radius:9px;padding:11px;cursor:pointer;margin-top:14px;}
   .add-row:hover{border-color:var(--teal);}
@@ -293,10 +313,22 @@
             <div class="unit-input"><span class="prefix">$</span><input id="onboardingCost" type="number" step="1" value="0"></div>
           </div>
           <div class="field">
+            <label>Onboarding Bonus</label>
+            <div class="unit-input"><span class="prefix">$</span><input id="onboardingBonus" type="number" step="1" value="0"></div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
             <label>Non-Billable Orient. Hrs</label>
             <input id="orientationHours" type="number" step="1" value="0">
           </div>
+          <div class="field">
+            <label>Orientation Pay Rate</label>
+            <div class="unit-input"><span class="prefix">$</span><input id="orientationRate" type="number" step="0.01" value="20"></div>
+          </div>
         </div>
+        <div class="state-note" id="orientationNote">Auto-set from work state / hospital — editable.</div>
 
         <div class="field">
           <label>Contract Weeks</label>
@@ -390,7 +422,7 @@
   <!-- ===== HOSPITALS TAB ===== -->
   <div class="tab-panel" id="panelHospitals">
     <div class="vcard">
-      <div class="col-labels-hosp"><span>Hospital</span><span>Onboarding $</span><span>Orient. Hrs</span><span>Notes</span><span></span></div>
+      <div class="hosp-intro">Set each hospital's default onboarding cost, onboarding bonus, non-billable orientation hours, and — for CA facilities — the SB 525 health care minimum wage tier that sets their orientation pay floor. These auto-fill on the Calculator when you pick the hospital, and stay editable per req.</div>
       <div id="hospitalList"></div>
       <div id="emptyNoteHosp" class="empty-note" style="display:none;">No hospitals saved yet — add your first one below.</div>
       <button class="add-row" onclick="addHospital()">+ Add hospital</button>
@@ -449,7 +481,9 @@ function showTab(tab){
 let states = [];
 let vendors = [];
 let hospitals = [];
+let caWageTiers = [];
 let mode = 'pay';
+const ELITECARE_DEFAULT_RATE = 20; // self-determined non-CA orientation rate — clears every state's minimum wage
 
 function num(id){ return parseFloat(document.getElementById(id).value) || 0; }
 function fmtMoney(v){
@@ -483,13 +517,22 @@ async function loadVendorsForDropdown(){
   onVendorChange();
 }
 
+async function loadCaWageTiers(){
+  caWageTiers = await sb('ms_ca_wage_tiers?select=*&order=sort_order.asc');
+}
+
 function currentState(){
   const code = document.getElementById('state').value;
   return states.find(s => s.state_code === code);
 }
+function currentHospital(){
+  const i = document.getElementById('hospital').value;
+  return (i !== '' && hospitals[i]) ? hospitals[i] : null;
+}
 function onStateChange(){
   const s = currentState();
   document.getElementById('stateNote').textContent = s ? (s.notes || '') : '';
+  updateOrientationDefault();
   compute();
 }
 function onVendorChange(){
@@ -498,6 +541,42 @@ function onVendorChange(){
   const pct = Number(vendors[i].vms_fee_pct)*100;
   document.getElementById('vmsFee').value = pct.toFixed(2).replace(/\.00$/,'');
   compute();
+}
+
+// Resolves the default orientation pay rate + explanatory note from work state + selected hospital.
+// CA: uses the hospital's assigned SB 525 health-care minimum wage tier. Other states: flat EliteCare $20/hr
+// (clears every state's minimum wage). Hospitals flagged "orientation reimbursed" add no extra cost at all.
+function updateOrientationDefault(){
+  const s = currentState();
+  const h = currentHospital();
+  const rateInput = document.getElementById('orientationRate');
+  const noteEl = document.getElementById('orientationNote');
+  const isCA = s && s.state_code === 'CA';
+
+  if(h && h.orientation_reimbursed){
+    rateInput.classList.add('disabled-look');
+    noteEl.textContent = `${h.name} reimburses orientation at the full regular rate — no added contract cost.`;
+    return;
+  }
+  rateInput.classList.remove('disabled-look');
+
+  if(isCA){
+    const tierCode = h ? h.ca_wage_tier : null;
+    const tier = tierCode ? caWageTiers.find(t => t.tier_code === tierCode) : null;
+    if(tier){
+      rateInput.value = Number(tier.hourly_rate).toFixed(2);
+      noteEl.textContent = `CA health care minimum wage — ${tier.tier_name} ($${Number(tier.hourly_rate).toFixed(2)}/hr).`;
+    } else {
+      const fallback = caWageTiers.find(t => t.tier_code === 'general_hospital');
+      rateInput.value = fallback ? Number(fallback.hourly_rate).toFixed(2) : '25.00';
+      noteEl.textContent = h
+        ? `No CA wage tier set for ${h.name} — defaulting to General Hospital rate. Set its tier on the Hospitals tab.`
+        : `CA — select a hospital with a wage tier, or set one on the Hospitals tab.`;
+    }
+  } else {
+    rateInput.value = ELITECARE_DEFAULT_RATE.toFixed(2);
+    noteEl.textContent = `EliteCare default orientation rate ($${ELITECARE_DEFAULT_RATE.toFixed(2)}/hr) — clears minimum wage in every non-CA state.`;
+  }
 }
 
 function onModeCheck(which){
@@ -524,7 +603,11 @@ function compute(){
   const burden = num('burden')/100;
   const contractWeeks = num('contractWeeks') || 13;
   const onboardingCost = num('onboardingCost');
+  const onboardingBonus = num('onboardingBonus');
   const orientationHours = num('orientationHours');
+  const orientationRateInput = num('orientationRate');
+  const hospital = currentHospital();
+  const orientationReimbursed = !!(hospital && hospital.orientation_reimbursed);
 
   const brAfterVms = billRate * (1 - vmsFee);
   const brAfterFact = brAfterVms * (1 - factFee);
@@ -590,9 +673,11 @@ function compute(){
   const weeklyPay = weeklyComp + perDiem;
   const margin = revenue ? profit/revenue : 0;
 
-  // One-time contract-level costs: onboarding + non-billable orientation hours (paid, burdened, no revenue)
-  const orientationCost = orientationHours * regPay * (1+burden);
-  const oneTimeCosts = onboardingCost + orientationCost;
+  // One-time contract-level items: onboarding cost, onboarding bonus (income), and non-billable
+  // orientation hours — paid at the state-required rate (CA tier or EliteCare $20 default), burdened,
+  // earning no revenue. A hospital flagged "orientation reimbursed" pays full rate, so it adds no cost.
+  const orientationCost = orientationReimbursed ? 0 : orientationHours * orientationRateInput * (1+burden);
+  const oneTimeCosts = onboardingCost + orientationCost - onboardingBonus;
   const contractProfit = (profit * contractWeeks) - oneTimeCosts;
 
   // Hours
@@ -627,9 +712,14 @@ function compute(){
   cpEl.textContent = fmtMoney(contractProfit);
   cpEl.classList.toggle('neg', contractProfit < 0);
   const oneTimeParts = [];
-  if(onboardingCost) oneTimeParts.push(`${fmtMoney(onboardingCost)} onboarding`);
-  if(orientationCost) oneTimeParts.push(`${fmtMoney(orientationCost)} orientation (${orientationHours} hrs)`);
-  document.getElementById('contractSub').textContent = oneTimeParts.length ? `after ${oneTimeParts.join(' + ')}` : '';
+  if(onboardingCost) oneTimeParts.push(`-${fmtMoney(onboardingCost)} onboarding`);
+  if(orientationReimbursed && orientationHours){
+    oneTimeParts.push(`orientation reimbursed`);
+  } else if(orientationCost){
+    oneTimeParts.push(`-${fmtMoney(orientationCost)} orientation (${orientationHours} hrs @ $${orientationRateInput.toFixed(2)})`);
+  }
+  if(onboardingBonus) oneTimeParts.push(`+${fmtMoney(onboardingBonus)} onboarding bonus`);
+  document.getElementById('contractSub').textContent = oneTimeParts.length ? oneTimeParts.join(' · ') : '';
 }
 
 // ---------- Vendors tab (CRUD) ----------
@@ -700,20 +790,48 @@ async function loadHospitalsForDropdown(){
 function onHospitalChange(){
   const i = document.getElementById('hospital').value;
   if(i === '' || !hospitals[i]) return;
-  document.getElementById('onboardingCost').value = Number(hospitals[i].default_onboarding_cost);
-  document.getElementById('orientationHours').value = Number(hospitals[i].default_orientation_hours);
+  const h = hospitals[i];
+  document.getElementById('onboardingCost').value = Number(h.default_onboarding_cost);
+  document.getElementById('onboardingBonus').value = Number(h.onboarding_bonus);
+  document.getElementById('orientationHours').value = Number(h.default_orientation_hours);
+  updateOrientationDefault();
   compute();
 }
 function renderHospitalTab(){
   const wrap = document.getElementById('hospitalList');
   document.getElementById('emptyNoteHosp').style.display = hospitals.length ? 'none' : 'block';
   wrap.innerHTML = hospitals.map(h => `
-    <div class="hospital-row" data-id="${h.id}">
-      <input value="${escapeAttr(h.name)}" onchange="saveHospitalField('${h.id}','name',this.value)">
-      <input type="number" step="1" value="${Number(h.default_onboarding_cost)}" onchange="saveHospitalField('${h.id}','default_onboarding_cost',this.value)">
-      <input type="number" step="1" value="${Number(h.default_orientation_hours)}" onchange="saveHospitalField('${h.id}','default_orientation_hours',this.value)">
-      <input value="${escapeAttr(h.notes)}" placeholder="—" onchange="saveHospitalField('${h.id}','notes',this.value)">
-      <button class="del-btn" onclick="removeHospital('${h.id}')" title="Delete">×</button>
+    <div class="hospital-card" data-id="${h.id}">
+      <div class="hospital-card-top">
+        <input value="${escapeAttr(h.name)}" onchange="saveHospitalField('${h.id}','name',this.value)">
+        <button class="del-btn" onclick="removeHospital('${h.id}')" title="Delete">×</button>
+      </div>
+      <div class="hospital-card-grid">
+        <div class="hc-field">
+          <label>Onboarding Cost</label>
+          <div class="unit-input"><span class="prefix">$</span><input type="number" step="1" value="${Number(h.default_onboarding_cost)}" onchange="saveHospitalField('${h.id}','default_onboarding_cost',this.value)"></div>
+        </div>
+        <div class="hc-field">
+          <label>Onboarding Bonus</label>
+          <div class="unit-input"><span class="prefix">$</span><input type="number" step="1" value="${Number(h.onboarding_bonus)}" onchange="saveHospitalField('${h.id}','onboarding_bonus',this.value)"></div>
+        </div>
+        <div class="hc-field">
+          <label>Orientation Hrs</label>
+          <input type="number" step="1" value="${Number(h.default_orientation_hours)}" onchange="saveHospitalField('${h.id}','default_orientation_hours',this.value)">
+        </div>
+        <div class="hc-field">
+          <label>CA Wage Tier</label>
+          <select onchange="saveHospitalField('${h.id}','ca_wage_tier',this.value || null)">
+            <option value="">— none —</option>
+            ${caWageTiers.map(t => `<option value="${t.tier_code}" ${h.ca_wage_tier===t.tier_code?'selected':''}>${t.tier_name} ($${Number(t.hourly_rate).toFixed(2)})</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <label class="check-row hc-checkbox">
+        <input type="checkbox" ${h.orientation_reimbursed?'checked':''} onchange="saveHospitalField('${h.id}','orientation_reimbursed',this.checked)">
+        <span>Reimburses orientation at full regular rate</span>
+      </label>
+      <input class="hc-notes" value="${escapeAttr(h.notes)}" placeholder="Notes" onchange="saveHospitalField('${h.id}','notes',this.value)">
     </div>
   `).join('');
 }
@@ -729,7 +847,7 @@ async function saveHospitalField(id, key, value){
 }
 async function addHospital(){
   try{
-    const created = await sb('ms_hospitals', {method:'POST', body: JSON.stringify({name:'New Hospital', default_onboarding_cost:0, default_orientation_hours:0})});
+    const created = await sb('ms_hospitals', {method:'POST', body: JSON.stringify({name:'New Hospital', default_onboarding_cost:0, default_orientation_hours:0, onboarding_bonus:0, orientation_reimbursed:false})});
     hospitals.push(created[0]);
     renderHospitalTab();
     await loadHospitalsForDropdown();
@@ -767,14 +885,22 @@ async function init(){
     showError('Could not load vendors: ' + e.message);
   }
   try{
+    await loadCaWageTiers();
+    clearError();
+  }catch(e){
+    showError('Could not load CA wage tiers: ' + e.message);
+  }
+  try{
     await loadHospitals();
     clearError();
   }catch(e){
     showError('Could not load hospitals: ' + e.message);
   }
+  updateOrientationDefault();
   compute();
 }
 init();
 </script>
 </body>
 </html>
+
