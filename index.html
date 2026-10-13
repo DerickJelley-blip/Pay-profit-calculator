@@ -359,6 +359,14 @@
           <div class="field driver-field disabled" id="marginField">
             <div class="unit-input pct"><input id="targetMargin" type="number" step="0.5" value="15"><span class="suffix">%</span></div>
           </div>
+
+          <label class="check-row">
+            <input type="checkbox" id="chkWeeklyPay" onchange="onModeCheck('weeklyPay')">
+            <span>Set the weekly pay</span>
+          </label>
+          <div class="field driver-field disabled" id="weeklyPayField">
+            <div class="unit-input"><span class="prefix">$</span><input id="weeklyPayAmt" type="number" step="10" value="2340"></div>
+          </div>
         </div>
       </div>
 
@@ -583,10 +591,12 @@ function onModeCheck(which){
   document.getElementById('chkPay').checked = which==='pay';
   document.getElementById('chkTarget').checked = which==='target';
   document.getElementById('chkMargin').checked = which==='margin';
+  document.getElementById('chkWeeklyPay').checked = which==='weeklyPay';
   mode = which;
   document.getElementById('payField').classList.toggle('disabled', mode !== 'pay');
   document.getElementById('targetField').classList.toggle('disabled', mode !== 'target');
   document.getElementById('marginField').classList.toggle('disabled', mode !== 'margin');
+  document.getElementById('weeklyPayField').classList.toggle('disabled', mode !== 'weeklyPay');
   compute();
 }
 
@@ -654,6 +664,11 @@ function compute(){
     wages = regPay * weightedHours;
     totalCost = wages*(1+burden) + perDiem;
     profit = revenue - totalCost;
+  } else if(mode === 'weeklyPay'){
+    wages = num('weeklyPayAmt') - perDiem;
+    regPay = weightedHours ? wages / weightedHours : 0;
+    totalCost = wages*(1+burden) + perDiem;
+    profit = revenue - totalCost;
   } else {
     let targetProfit;
     if(mode === 'margin'){
@@ -687,7 +702,7 @@ function compute(){
 
   // Employee section
   document.getElementById('outHourly').textContent = '$' + regPay.toFixed(2);
-  document.getElementById('solvedTag').textContent = (mode === 'target' || mode === 'margin') ? '(solved)' : '';
+  document.getElementById('solvedTag').textContent = (mode === 'target' || mode === 'margin' || mode === 'weeklyPay') ? '(solved)' : '';
   document.getElementById('outOTRate').textContent = '$' + otRate.toFixed(2);
   document.getElementById('outPerDiem').textContent = fmtMoney(perDiem);
   const weeklyCompEl = document.getElementById('outOtherComp');
